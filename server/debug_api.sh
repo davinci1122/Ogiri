@@ -1,5 +1,10 @@
 #!/bin/bash
-API_KEY="AIzaSyCaEuxq1DDluYr0RUEkuf_X1uHDW4KeqvY"
+# Avoid hardcoding API keys. Set GEMINI_API_KEY in your environment.
+if [ -z "$GEMINI_API_KEY" ]; then
+    echo "Error: GEMINI_API_KEY is not set."
+    exit 1
+fi
+API_KEY="$GEMINI_API_KEY"
 
 echo "--- Testing List Models ---"
 curl -s "https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}" > models_response.json
