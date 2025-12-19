@@ -251,9 +251,12 @@ export default function HostApp() {
                                                         <Sparkles size={16} /> コメント
                                                     </div>
                                                     <p className="text-yellow-100 font-bold text-lg mb-2">"{ans.tsukkomi}"</p>
-                                                    <p className="text-green-400 text-sm flex items-start gap-2">
-                                                        <span className="shrink-0 pt-1">🌱</span>
-                                                        <span className="italic">ビジネスのたね:</span> {ans.business_pivot}
+                                                    <p className="text-green-400 text-sm flex items-start gap-2 mt-2">
+                                                        <span className="shrink-0 pt-0.5">🌱</span>
+                                                        <span>
+                                                            <strong className="mr-1">ビジネスのたね:</strong>
+                                                            {ans.business_pivot}
+                                                        </span>
                                                     </p>
                                                 </div>
                                             </motion.div>
