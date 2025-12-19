@@ -216,8 +216,8 @@ export default function HostApp() {
                                                     </div>
                                                     <p className="text-yellow-100 font-bold text-lg mb-2">"{ans.tsukkomi}"</p>
                                                     <p className="text-green-400 text-sm flex items-start gap-2">
-                                                        <span className="shrink-0 pt-1">💡</span>
-                                                        <span className="italic">Business Idea:</span> {ans.business_pivot}
+                                                        <span className="shrink-0 pt-1">🌱</span>
+                                                        <span className="italic">Business Seed:</span> {ans.business_pivot}
                                                     </p>
                                                 </div>
                                             </motion.div>

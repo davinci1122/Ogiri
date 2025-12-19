@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
 
-const SOCKET_URL = window.location.origin;
+const SOCKET_URL = import.meta.env.DEV
+    ? `http://${window.location.hostname}:3000`
+    : window.location.origin;
 
 export const useSocket = () => {
     const [isConnected, setIsConnected] = useState(false);
