@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useSocket } from '../../hooks/useSocket';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +8,13 @@ import { ArrowRight, Trophy, Download, Play, Mic, Sparkles } from 'lucide-react'
 
 export default function HostApp() {
     const { socket, isConnected } = useSocket();
-    const [phase, setPhase] = useState('setup'); // setup, selection, game, result
+    const [searchParams, setSearchParams] = useSearchParams();
+    const phase = searchParams.get('phase') || 'setup';
+
+    const setPhase = (newPhase) => {
+        setSearchParams({ phase: newPhase });
+    };
+
     const [problem, setProblem] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [topics, setTopics] = useState([]);
@@ -72,7 +79,7 @@ export default function HostApp() {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-900 text-white font-sans overflow-hidden">
+        <div className="min-h-screen bg-neutral-900 text-white font-sans">
             {!isConnected && (
                 <div className="fixed top-0 left-0 w-full bg-red-600 text-white text-center p-2 z-50">
                     Connecting to server...
@@ -83,13 +90,13 @@ export default function HostApp() {
                 {/* Header */}
                 <header className="flex justify-between items-center mb-8 border-b border-neutral-700 pb-4">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-transparent bg-clip-text">
-                        Oogiri Jam <span className="text-sm font-normal text-gray-400 ml-2">Host View</span>
+                        Oogiri Jam <span className="text-sm font-normal text-gray-400 ml-2">ホスト画面</span>
                     </h1>
                     <div className="text-sm text-gray-500">Phase: {phase.toUpperCase()}</div>
                 </header>
 
                 {/* Content Area */}
-                <main className="flex-1 relative min-h-0 overflow-hidden">
+                <main className="flex-1 relative min-h-0">
                     <AnimatePresence mode="wait">
 
                         {/* Setup Phase: Input Problem */}
@@ -145,6 +152,24 @@ export default function HostApp() {
                                         </motion.button>
                                     ))}
                                 </div>
+
+                                {/* Regeneration Button */}
+                                <div className="mt-12 flex gap-4">
+                                    <button
+                                        onClick={handleProblemSubmit}
+                                        disabled={isGenerating}
+                                        className="px-6 py-3 bg-neutral-700 hover:bg-neutral-600 rounded-full text-lg font-bold transition-all flex items-center gap-2"
+                                    >
+                                        <Sparkles size={20} className="text-yellow-500" />
+                                        {isGenerating ? '生成中...' : 'お題を練り直す'}
+                                    </button>
+                                    <button
+                                        onClick={() => setPhase('setup')}
+                                        className="px-6 py-3 bg-neutral-800 border border-neutral-700 hover:bg-neutral-700 rounded-full text-lg font-bold transition-all"
+                                    >
+                                        最初に戻る
+                                    </button>
+                                </div>
                             </motion.div>
                         )}
 
@@ -162,22 +187,33 @@ export default function HostApp() {
                                     <div className="text-center">
                                         <p className="text-gray-400 text-sm mb-2">Join at {window.location.origin}/player</p>
                                         <div className="bg-neutral-800 p-6 rounded-xl border border-orange-500/30">
-                                            <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-2">Current Topic</h3>
+                                            <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-2">お題</h3>
                                             <p className="text-xl font-bold text-orange-400">{selectedTopic}</p>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={handleFinishGame}
-                                        className="mt-auto w-full py-4 bg-red-600/20 text-red-500 border border-red-600/50 rounded-lg hover:bg-red-600 hover:text-white transition-colors uppercase tracking-widest font-bold"
-                                    >
-                                        Finish Game
-                                    </button>
+                                    <div className="mt-auto flex flex-col gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setAnswers([]);
+                                                setPhase('selection');
+                                            }}
+                                            className="w-full py-4 bg-neutral-800 text-gray-400 border border-neutral-700 rounded-lg hover:bg-neutral-700 transition-colors uppercase tracking-widest font-bold"
+                                        >
+                                            お題選びに戻る
+                                        </button>
+                                        <button
+                                            onClick={handleFinishGame}
+                                            className="w-full py-4 bg-red-600/20 text-red-500 border border-red-600/50 rounded-lg hover:bg-red-600 hover:text-white transition-colors uppercase tracking-widest font-bold"
+                                        >
+                                            Finish Game
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Right: Answers Stream */}
                                 <div className="flex-1 bg-neutral-800/50 rounded-3xl p-6 overflow-y-auto relative border border-neutral-700 min-h-0">
                                     <h3 className="text-gray-500 mb-4 sticky top-0 bg-neutral-900/90 p-2 z-10 backdrop-blur">
-                                        Live Answers ({answers.length})
+                                        回答一覧 ({answers.length})
                                     </h3>
                                     <div className="space-y-6 flex flex-col">
                                         {[...answers].sort((a, b) => b.timestamp - a.timestamp).map((ans) => (
@@ -212,19 +248,19 @@ export default function HostApp() {
                                                 {/* AI Idea Section */}
                                                 <div className="bg-black/40 rounded-lg p-4 border-l-4 border-yellow-500">
                                                     <div className="flex items-center gap-2 mb-1 text-yellow-500 font-bold">
-                                                        <Sparkles size={16} /> Innovation Appraisal
+                                                        <Sparkles size={16} /> コメント
                                                     </div>
                                                     <p className="text-yellow-100 font-bold text-lg mb-2">"{ans.tsukkomi}"</p>
                                                     <p className="text-green-400 text-sm flex items-start gap-2">
                                                         <span className="shrink-0 pt-1">🌱</span>
-                                                        <span className="italic">Business Seed:</span> {ans.business_pivot}
+                                                        <span className="italic">ビジネスのたね:</span> {ans.business_pivot}
                                                     </p>
                                                 </div>
                                             </motion.div>
                                         ))}
                                         {answers.length === 0 && (
                                             <div className="text-center text-gray-600 py-20">
-                                                Waiting for answers...
+                                                回答を待っています...
                                             </div>
                                         )}
                                     </div>
@@ -241,7 +277,7 @@ export default function HostApp() {
                                 className="h-full flex flex-col items-center justify-center gap-8"
                             >
                                 <h2 className="text-5xl font-black text-center mb-8 uppercase tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-500">
-                                    Results
+                                    結果発表
                                 </h2>
 
                                 <div className="flex gap-8 w-full max-w-5xl">
@@ -273,7 +309,7 @@ export default function HostApp() {
                                         <div className="absolute top-0 right-0 p-4 opacity-20">
                                             <Trophy size={100} color="#3b82f6" />
                                         </div>
-                                        <h3 className="text-blue-500 font-bold tracking-widest uppercase mb-2">Innovation Pivot</h3>
+                                        <h3 className="text-blue-500 font-bold tracking-widest uppercase mb-2">ピボット賞</h3>
                                         <p className="text-4xl font-bold mb-4">{result.pivot_award.nickname}</p>
                                         <p className="text-2xl mb-6">"{result.pivot_award.deviation}"</p>
                                         <p className="text-sm text-gray-400 border-t border-blue-500/30 pt-4">
